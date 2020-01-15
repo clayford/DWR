@@ -12,20 +12,69 @@ library(lubridate)
 
 # Download Data for Workshop ----------------------------------------------
 
-# The data we'll use in this workshop is available in a 4 MB ZIP file on my UVa
-# people page. The following code will download and unzip the file. Before
+# The data we'll use in this workshop is available in a 4 MB ZIP file on a
+# GitHub repository. The following code will download and unzip the file. Before
 # running the following code you may want to set your working directory to your
-# Desktop or a new folder with a name like "DWR_workshop_01".
+# Desktop or a new folder with a name like "DWR_workshop".
 
 # To set working directory: 
 # Session...Set Working Directory...Choose Directory...
 
-URL <- "http://people.virginia.edu/~jcf2d/data/DWR_data.zip"
+URL <- "https://github.com/clayford/DWR/raw/master/DWR_data.zip"
 d <- basename(URL)
 download.file(url = URL, destfile = d)
 unzip(d)
 setwd("DWR_data")
 rm(URL, d)
+
+
+
+# Data Structures ---------------------------------------------------------
+
+
+# Vector: 1D object of same data type (eg, all numeric, or all character). Like
+# a column of data in a spreadsheet. We can create a vector with c()
+x <- c(1, 4, 23, 4, 45)
+
+# Data frame: 2D object consisting of vectors of the SAME LENGTH but
+# of potentially different data types
+n <- c(1, 3, 5)
+g <- c("M", "M", "F")
+df <- data.frame(n, g)
+df
+str(df)
+
+# Notice the g column is a Factor
+
+# The tidyverse tibble() function creates a data frame that prints differently
+# and does not create Factors. Some people prefer tibbles.
+df <- tibble(n, g)
+df
+str(df)
+
+# Lists are a general data structure that can hold data of any shape or type. We
+# can create a list with the list() function.
+lst <- list(x, n, g, df)
+lst
+
+# Notice the difference: 
+# Returns the first element as a list
+lst[1]
+# Returns the first element as a vector
+lst[[1]]
+
+# We can also provide names
+lst2 <- list(num = x, size = n, sex = g, data = df)
+lst2
+
+# Access the list elements using the $ operator and their name
+lst2$num
+lst2$data
+
+
+
+# Applying functions to lists ---------------------------------------------
+
 
 
 # Binding -----------------------------------------------------------------
