@@ -57,12 +57,6 @@ str(df)
 lst <- list(x, n, g, df)
 lst
 
-# Notice the difference: 
-# Returns the first element as a list
-lst[1]
-# Returns the first element as a vector
-lst[[1]]
-
 # We can also provide names
 lst2 <- list(num = x, size = n, sex = g, data = df)
 lst2
@@ -74,6 +68,41 @@ lst2$data
 
 
 # Applying functions to lists ---------------------------------------------
+
+# A toy example list for demonstration:
+lst3 <- list(x = c(1, 3, 5, 7),
+             y = c(2, 2, 2, 4, 5, 5, 5, 6),
+             z = c(22, 3, 3, 3, 5, 10))
+lst3
+
+# find the means of x, y, z.
+
+# can do one at a time
+mean(lst3$x)
+mean(lst3$y)
+mean(lst3$z)
+
+# The lapply() function allows us to "apply" a function to each list element
+lapply(lst3, mean)
+
+# The tidyverse function map() does the same thing
+map(lst3, mean)
+
+# sapply() does the same but simplifies the output
+sapply(lst3, mean)
+
+# The tidyverse requires a modified map function called map_dbl()
+map_dbl(lst3, mean)
+
+
+# YOUR TURN #1 ------------------------------------------------------------
+
+# lapply and sapply the summary and quantile functions to lst3. How does sapply
+# simplify the result? Try the same with map() and map_df().
+
+sapply(lst3, max)
+sapply(lst3, summary)
+map_df(lst3, quantile)
 
 
 
