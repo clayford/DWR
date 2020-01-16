@@ -198,20 +198,46 @@ names(stocks_ls)
 # Before row binding, let's name each list element so we can use the .id
 # argument to identify the stock in the final data frame.
 
-# name each list element (replace ".csv" with nothing)
+# name each list element (replace ".csv" with nothing);
+# str_remove() is a tidyverse function that removes the specified text pattern.
 names(stocks_ls) <- str_remove(stocks, ".csv")
+names(stocks_ls)
 
-# Use bind_rows to combine all data frames in list to one data frame.
-# Use the .id argument to add a column indicating the stock
+# Use bind_rows to combine all data frames in list to one data frame. Because
+# each list element has a name and we use the .id argument, a new column will be
+# created indicates the stock.
 stocks_df <- bind_rows(stocks_ls, .id = "stock")
+
+# Let's calculate change from opening to closing price each day
+stocks_df$Change <- stocks_df$Open - stocks_df$Close
 
 # first six records
 head(stocks_df)
 
-# Let's work with the dates
 
-# Convert Date to actual date value using lubridate's dmy() function
+
+# Working with dates and times --------------------------------------------
+
+# We often want to calculate elapsed number of days or seconds. Or extract month
+# or day of week from a date, so we can compare quantities by month or day.
+
+# R allows to store dates as number of days since Jan 1, 1970, and times as
+# number of seconds since Jan 1, 1970. The Jan 1, 1970 date is arbitrary. It
+# just allows to convert a date into a number that we can use for analysis.
+
+# The lubridate package provides functions for working with dates.
+
+# Let's format the dates in stocks_df. The date is in the format day-month-year,
+# so we use the dmy function.
+head(stocks_df$Date)
 stocks_df$Date <- dmy(stocks_df$Date)
+
+# Dates print like character values but are actually numbers.
+head(stocks_df$Date)
+head(as.numeric(stocks_df$Date))
+
+# Having the Date properly formatted allows us to extract Day and Month with
+# ease.
 
 # Extract day of week and save into new column called "Day"
 stocks_df$Day <- wday(stocks_df$Date, label = TRUE)
@@ -219,8 +245,6 @@ stocks_df$Day <- wday(stocks_df$Date, label = TRUE)
 # Extract month of year and save into new column called "Month"
 stocks_df$Month <- month(stocks_df$Date, label = TRUE)
 
-# Calculate change from opening to closing price
-stocks_df$Change <- stocks_df$Open - stocks_df$Close
 
 # first six records
 head(stocks_df)
@@ -235,7 +259,7 @@ ggplot(stocks_df, aes(x = Day, y = Change)) +
   facet_wrap(~stock)
 
 
-# YOUR TURN #1 ------------------------------------------------------------
+# YOUR TURN #2 ------------------------------------------------------------
 
 # VA DOE: Public high school graduate and completer data for 2006 - 2016.
 # http://www.doe.virginia.gov/statistics_reports/research_data/index.shtml
@@ -244,7 +268,8 @@ ggplot(stocks_df, aes(x = Day, y = Change)) +
 
 # TIP: look at one of the CSV files before starting. Do you need to use the .id
 # argument?
-setwd("doe")
+setwd("../doe")
+
 grads <- list.files()
 grads_ls <- lapply(grads, read_csv)
 grads_df <- bind_rows(grads_ls)
@@ -253,18 +278,17 @@ grads_df <- bind_rows(grads_ls)
 # Merging/Joining ---------------------------------------------------------
 
 # Let's create some fake data to demonstrate merging/joining data:
-left <- data.frame(id=c(2:5),
-                   x=c(90, 93, 99, 89))
-left
-right <- data.frame(id=rep(1:4,each=2),
-                    y=c("a", "d", "e", "c", "e", "d", "a", "b"))
-right
+left <- tibble(id=1:3,
+                   x=c(12, 14, 16))
+right <- tibble(id=2:4,
+                    y=c("a", "b", "c"))
 
 
 #### left join
 
 # If we want to retain everything in the left data frame and merge only what 
 # has a matching id in the right data frame, we do a LEFT JOIN.
+left; right
 left_join(left, right, by = "id")
 
 # Notice rows from the left data frame are recycled to match up with multiple id
@@ -276,6 +300,7 @@ left_join(left, right, by = "id")
 
 # If we want to retain everything in the right data frame and merge only what 
 # has a matching id in the left data frame, we do a RIGHT JOIN.
+left; right
 right_join(left, right, by = "id")
 
 # Notice rows from the left data frame are recycled to match up with multiple id
@@ -286,6 +311,7 @@ right_join(left, right, by = "id")
 
 # If we want to retain only those rows with matching ids in both data sets, we
 # do an INNER JOIN.
+left; right
 inner_join(left, right, by = "id")
 
 # Notice y from the left data frame is recycled to match up with multiple id 
@@ -295,6 +321,7 @@ inner_join(left, right, by = "id")
 #### full join
 
 # If we wanted to merge all rows regardless of match, we do a FULL JOIN.
+left; right
 full_join(left, right, by = "id")
 
 # Notice all rows from both data frames are retained and NAs are created in 
@@ -305,19 +332,18 @@ full_join(left, right, by = "id")
 
 # Sometimes we have more than one key in each data frame that we want to merge
 # on. In that case we give the by argument a vector of keys
-dat11 <- tibble(REGION = c(1,1,2,2), 
-                STATE = c(1,2,1,2), 
-                x = runif(4))
-dat11
+left2 <- tibble(id1 = c(1,1,2,2), 
+                id2 = c(1,2,1,2), 
+                x = c(101, 103, 105, 107))
 
-dat12 <- tibble(REGION = c(1,2,3), 
-                STATE = c(2,1,1), 
+right2 <- tibble(id1 = c(1,1,2), 
+                id2 = c(1,2,3), 
                 y = c("a","b","c"))
-dat12
+
 
 # left join
-left_join(dat11, dat12, by = c("REGION", "STATE"))
-left_join(dat11, dat12, by = "REGION")
+left2; right2
+left_join(left2, right2, by = c("id1", "id2"))
 
 
 
@@ -327,56 +353,53 @@ left_join(dat11, dat12, by = "REGION")
 # simple in real life. Below is an example of how to merge data using multiple
 # keys with different names.
 
-dat11 <- tibble(id1 = c(1,1,2,2), 
+left2 <- tibble(id1 = c(1,1,2,2), 
                 id2 = c(1,2,1,2), 
-                x = runif(4))
-dat11
+                x = c(101, 103, 105, 107))
 
-dat12 <- tibble(REGION = c(1,2,3), 
-                STATE = c(2,1,1), 
-                y = c("a","b","c"))
-dat12
+right2 <- tibble(V1 = c(1,1,2), 
+                 V2 = c(1,2,3), 
+                 y = c("a","b","c"))
 
-# Let's say columns "id1" and "id2" in dat11 correspond to columns "REGION" and 
-# "STATE" in dat12. To perform a left join with these data frames using dplyr
-# functions we use a named vector.
+# Let's say columns "id1" and "id2" in left2 correspond to columns "V1" and "V2"
+# in right2. To perform a left join with these data frames we use a named
+# vector.
 
-left_join(dat11, dat12, by = c("id1" = "REGION", "id2" = "STATE"))
+left2; right2
+left_join(left2, right2, by = c("id1" = "V1", "id2" = "V2"))
 
 # The same modifications will work for right joins, inner joins, and full joins.
 
 
 
-# dplyr also provides functions for performing "filtering joins" which is a way
-# to check if rows in one data frame have (or do not have) membership in another
-# data frame.
+# The tidyverse also provides functions for performing "filtering joins" which
+# is a way to check if rows in one data frame have (or do not have) membership
+# in another data frame.
 
 # Once again let's create some fake data to demonstrate. 
-
-
-ex01 <- tibble(id = 1:5, 
+ages <- tibble(id = 1:5, 
                name = c("Rick", "Morty", "Jerry", "Beth", "Summer"),
                age = c(67, 15, 42, 39, 17))
-ex01
-ex02 <- tibble(ID = 1:3, 
-               GRP = c(1, 1, 2))
-ex02
+grp <- tibble(ID = 1:3,
+              GRP = c(1, 1, 2))
 
 #### semi join
 
-# all rows in ex01 that have a match in ex02 
-semi_join(ex01, ex02, by = c("id" = "ID"))
+# all rows in ages that have a match in grp
+ages; grp
+semi_join(ages, grp, by = c("id" = "ID"))
 
 #### anti join
 
-# all rows in ex01 that do NOT have a match in ex02
-anti_join(ex01, ex02, by = c("id" = "ID"))
+# all rows in ages that do NOT have a match in grp
+ages; grp
+anti_join(ages, grp, by = c("id" = "ID"))
 
 
 
-# Extended example: merging Apple stock data with Google Trends data
+# Extended example: merging stock data and Google trends data -------------
 
-# set working directory up one level
+# set working directory up one level to DWR_data/
 setwd("..")
 
 # read in historical stock data for Apple (obtained from Yahoo Finance)
@@ -390,7 +413,8 @@ aapl$Day <- wday(aapl$Date, label = TRUE)
 summary(aapl)
 
 
-# read in Google trends data for "new macbook pro 2018"
+# read in Google trends data for "new macbook pro 2018". Notice we skip the
+# first three lines and specify the column names.
 gt <- read_csv("mac_book_pro_trends.csv",
                skip = 3, 
                col_names = c("Date","Interest"))
@@ -406,22 +430,20 @@ names(gt)
 
 inner_join(aapl, gt, by = "Date")
 
-# However all stock data is Monday - Friday while Google trends data is weekly
-# on Sunday. No records in common by Date so inner_join returns an empty data
+# All stock data is Monday - Friday while Google trends data is weekly on
+# Sunday. No records in common by Date so inner_join returns an empty data
 # frame.
 
 table(aapl$Day)
-table(gt$Day)
+table(wday(gt$Date, label = TRUE))
 
-# Change google trends date to Monday by adding 1
+# Simple hack: change google trends date to Monday by adding 1
 gt$Date <- gt$Date + 1
-gt$Day <- wday(gt$Date, label = TRUE)
-table(gt$Day)
-
+table(wday(gt$Date, label = TRUE))
 
 # Perform inner join to merge records from both data frames with matching dates,
 # and save as a new data frame.
-aapl_gt <- inner_join(aapl, gt, by = c("Date","Day"))
+aapl_gt <- inner_join(aapl, gt, by = "Date")
 aapl_gt
 
 
@@ -432,29 +454,48 @@ ggplot(aapl_gt, aes(x = Interest, y = Close)) +
   geom_smooth(se = F)
 
 
-# YOUR TURN #2 ------------------------------------------------------------
+
+# Regular expressions -----------------------------------------------------
+
+# Regular expressions are a language for defining text patterns. 
+
+# Example: remove the suffix from the vector of names
+names <- c("Ford, MS", "Jones, PhD", "Martin, Phd", "Huck, MA, MLS")
+
+# pattern: first comma and everything after it
+str_remove(names, pattern = ", [[:print:]]+")
+
+# [[:print:]]+ = one or more printable characters
+
+# The suggested strategy for using regular expressions: know when you need them
+# and use google and trial-and-error to create the right one.
+
+
+# YOUR TURN #3 ------------------------------------------------------------
 
 # Read in school population totals for all Virginia schools for the 2016-2017
 # year
 va_schools  <- read_csv("va_schools_2016-2017.csv")
 names(va_schools)
 
-# (1) remove non-alpha-numeric characters from column names
-names(va_schools) <- str_remove_all(names(va_schools), pattern = "[^[:alnum:]]")
+# Remove non-alpha-numeric characters from column names using regular
+# expressions.
 names(va_schools) <- str_remove_all(names(va_schools), pattern = "[[:punct:][:space:]]")
 
 
-# (2) add leading 0s to DivNo and SchoolNo. DinNo should be width 3 (eg "001");
-# SchoolNo should be width 4 (eg, "0001").
+# Add leading 0s to DivNo and SchoolNo. 
+# DinNo should be width 3 (eg "001")
+# SchoolNo should be width 4 (eg, "0001")
 va_schools$DivNo <- str_pad(va_schools$DivNo, width = 3, side = "left", pad = "0")
 va_schools$SchoolNo <- str_pad(va_schools$SchoolNo, width = 4, side = "left", pad = "0")
 
-# (3) subset grads_df to only include rows where SCHOOL_YEAR == "2016-2017" and
+# Subset grads_df to only include rows where SCHOOL_YEAR == "2016-2017" and
 # name the new data frame "grads_df_2016_2017"
 grads_df_2016_2017 <- filter(grads_df, SCHOOL_YEAR == "2016-2017")
 
+# NOW YOUR TURN!
 
-# (4) Merge the grads_df_2016_2017 and va_schools data frames based on Division
+# Merge the grads_df_2016_2017 and va_schools data frames based on Division
 # and School Number such that all rows from grads_df_2016_2017 are retained.
 # Save the new data frame as va2016_2017
 names(grads_df_2016_2017)[c(3,5)]
@@ -466,48 +507,36 @@ va2016_2017 <- left_join(grads_df_2016_2017, va_schools, by = c("DIV_NUM" = "Div
                                                                 "SCH_NUM" = "SchoolNo"))
 
 
-# With this combined data, we can look at, say, schools with the highest rate of
-# economically disadvantaged completers.
+# Why do this merge? So we could find, say, schools with the highest rate of
+# economically disadvantaged completers who obtained a Standard Diploma.
 
-# First calculate percentage of completers
+# First calculate percentage of completers; divide the completer count by number
+# of students in Grade 12
 va2016_2017$pctComplete <- va2016_2017$HS_COMPLETER_CNT/va2016_2017$Grade12
 
-# Next subset data to eliminate redundant and unnecessary rows
-va_completers <- subset(va2016_2017, !is.na(FEDERAL_RACE_CODE) & !is.na(GENDER) & 
-                          !is.na(DISABILITY_FLAG) & !is.na(LEP_FLAG) & 
-                          !is.na(DISADVANTAGED_FLAG) & DISADVANTAGED_FLAG == "Y",
-                        select = c(SCH_NAME, GENDER, HS_COMPLETER_CNT, DISADVANTAGED_FLAG, 
-                                   LEP_FLAG, DISABILITY_FLAG, FEDERAL_RACE_CODE, Grade12, pctComplete)) 
+# The data dictionary tells us that a missing (or Null) value in a field means
+# it was not considered when compiling the count for the record.
 
-# sort in descending order by pctComplete
-# arrange is a dplyr function
-va_completers <- arrange(va_completers, desc(pctComplete))
+# Data dictionary:
+# http://www.doe.virginia.gov/statistics_reports/research_data/data_files/data_dictionary.pdf
 
-# look at top 20
-head(va_completers, n = 20)
+# The tidyverse allows us to use the pipe %>% to send the output of one function
+# into the first argument of the 2nd function.
 
-# Using the tidyverse dplyr method with "pipes":
 va2016_2017 %>% 
-  mutate(pctComplete = HS_COMPLETER_CNT/Grade12) %>% 
-  filter(!is.na(FEDERAL_RACE_CODE) & !is.na(GENDER) & 
-           !is.na(DISABILITY_FLAG) & !is.na(LEP_FLAG) & 
-           !is.na(DISADVANTAGED_FLAG)) %>% 
-  filter(DISADVANTAGED_FLAG == "Y") %>% 
-  arrange(desc(pctComplete)) %>% 
-  select(SCH_NAME, GENDER, HS_COMPLETER_CNT, Grade12, pctComplete) %>% 
-  head(n=20)
+  filter(DISADVANTAGED_FLAG == "Y" & 
+           is.na(GENDER) & is.na(FEDERAL_RACE_CODE) & 
+           is.na(DISABILITY_FLAG) & is.na(LEP_FLAG) & 
+           HS_COMPLETION_NAME == "Standard Diploma" &
+           LEVEL_CODE == "SCH") %>% 
+  select(SCH_NAME, DIV_NAME, HS_COMPLETER_CNT, Grade12, pctComplete) %>% 
+  arrange(desc(pctComplete))
 
 
 
 # Reshaping ---------------------------------------------------------------
 
 # It's often helpful to think of data as "wide" or "long". 
-
-# When there are multiple occurrences of values for a single observation in one
-# row, the data is said to be wide. 
-
-# When there are multiple occurrences of values for a single observation in
-# multiple rows, the data is said to be long.
 
 # Example of a wide data frame. Notice each person has multiple test scores
 # that span columns.
@@ -549,87 +578,76 @@ ggplot(long, aes(x = factor(test), y = score, color = name, group = name)) +
 #### reshape wide to long
 
 # The tidyverse package tidyr provides functions for reshaping data. To reshape
-# wide data into long format we use the gather() function.
+# wide data into long format we use the pivot_longer() function.
 
-# Syntax: gather(data, key, value, columns to gather) where...
+wide
+pivot_longer(wide, test1:test3, names_to = "test", values_to = "score")
 
-# - data is your data frame
-# - key is the name of the new key column
-# - value is the name of the new value column
-# - and the last part is names or numeric indices of columns to collapse (or to
-#   exclude from collapsing).
+# The first argument is the dataset to reshape
+ 
+# The second argument describes which columns need to be reshaped.
 
-# The key argument will be the column that contains what were previously column 
-# headers. 
+# The names_to argument gives the name of the variable that will be created from
+# the data stored in the column names, i.e. test
+ 
+# The values_to argument gives the name of the variable that will be created
+# from the data stored in the cell value, i.e. score
 
-# The value argument will be the column that contains the values that were
-# previously under the column headers that are now under the key column.
-
-# The remaining arguments are the columns we want to "gather" (or not gather)
-
-# Hopefully a demonstration will make this clear. Let's make our example wide
-# data frame long.
-
-gather(wide, key = test, value = score, test1, test2, test3)
-
-# Notice the "test" column contains what were previously the column headers and 
-# that the score column contains the values that were previously under the wide 
-# column headers (test1, test2, and test3). We list "test1, test2, test3" in the
-# gather functions because those are the columns we wish to gather.
 
 # Other ways to accomplish the same thing:
 
-# specify range of columns to gather using ":"
-gather(wide, key = test, value = score, test1:test3)
+# specify all columns except "name" using a minus sign
+pivot_longer(wide, -name, names_to = "test", values_to = "score")
 
-# specify to gather all columns except "name" using a minus sign
-gather(wide, key = test, value = score, -name)
+# drop "test" from the test column with names_prefix argument
+pivot_longer(wide, -name, names_to = "test", values_to = "score", 
+             names_prefix = "test")
 
 #### reshape long to wide 
 
-# This is less common. For this we use the tidyr function spread().
+# This is less common. For this we use the tidyr function pivot_wider().
 
-# Basic syntax: spread(data, key, value) where...
-
-# - data is a data frame, 
-# - key is name of the column with the (unique) values you want turned into
-#   column headers
-# - value is the name of the column that has the values you want placed under
-#   your new column headers.
-
-# Let's reshape our example long data frame wide.
 long
-# values in test column become column headers, values in score column go under
-# the new column headers.
-spread(long, key = test, value = score)
+pivot_wider(long, name, names_from = test, values_from = score)
 
-# Using the sep argument allows us to create column headers of the form
-# "<key_name><sep><key_value>"
-spread(long, key = test, value = score, sep = "")
-spread(long, key = test, value = score, sep = "-")
+# The first argument is the dataset to reshape
 
-# For more on tidyr, see the tutorial I wrote in 2016:
-# http://data.library.virginia.edu/a-tidyr-tutorial/
+# The second argument describes which columns need to be reshaped.
+
+# The names_from argument gives the name of the variable that contains the data
+# that will be used to create the column names.
+
+# The values_from argument gives the name of the variable that contains the
+# data that will be used to populate the cells.
+
+# using the names_prefix argument lets us prepend text to the column names.
+pivot_wider(long, name, names_from = test, values_from = score,
+            names_prefix = "test")
 
 
-# Extended example: reshape stocks_df to be "long"
+# For more on pivot_longer() and pivot_wider(), see the package vignette
+vignette("pivot", package = "tidyr")
+
+
+
+# Extended example: reshape stocks_df to be "long" ------------------------
 
 # If we examine the column headers of stocks_df we can see that we really have
 # five variables instead of seven: (1) Stock, (2) Date, (3) price type, (4)
 # price, and (5) volume. Below we use gather() to make the data "tidy".
 
 stocks_df
-stocks_df_long <- gather(stocks_df, key = price_type, value = price, Open:Close)
+stocks_df_long <- pivot_longer(stocks_df, Open:Close, names_to = "price_type", values_to =  "price")
 head(stocks_df_long)
 
 # With our data in "long" format we can create plots like this:
-ggplot(subset(stocks_df_long, price_type %in% c("High","Low")), 
+ggplot(filter(stocks_df_long, price_type %in% c("High","Low")), 
        aes(x = Date, y = price, color = price_type)) +
   geom_line() +
   facet_wrap(~stock, scales = "free") 
 
 
-# YOUR TURN #3 ------------------------------------------------------------
+# YOUR TURN #4 ------------------------------------------------------------
 
 
 # The file "mhp.csv" contains data on the number of patients in mental hospitals

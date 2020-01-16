@@ -412,12 +412,6 @@ Retain all rows from left that do NOT have matching values in right.
 ![](img/reshape.jpg)
 
 
-
-## Time to practice!
-
-Let's go the workshop R script for demonstrations and exercises.
-
-
 ## References
 
 **R for Data Science**: http://r4ds.had.co.nz/
