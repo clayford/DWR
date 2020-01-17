@@ -401,13 +401,18 @@ Retain all rows from left that do NOT have matching values in right.
 - Taking column names and making them values in a single column, and vice versa; similiar to transposing data in Excel
 - Often expressed as reshaping "wide to long", or "long to wide"
 - Reshaping wide to long is very common in R; often needed to accommodate modeling and plotting functions
-- `tidyr` functions: `gather` (wide to long) and `spread` (long to wide)
+- `tidyr` functions: `pivot_longer` (wide to long) and `pivot_wider` (long to wide)[^3]
+
+[^3]: These functions succeed `gather` and `spread` which are no longer under active development.
 
 ## Reshaping wide to long
 
-"gather" columns week1 - week3 into two columns, one for the column headers (_key_) and the other for the values in the columns (_value_).
+Reshape columns week1 - week3 into two columns, one for the column headers (`names_to`) and the other for the values in the columns (`values_to`).
 
-`gather(wide_df,key="week",value="count",week1:week3)`
+```
+pivot_longer(wide_df, week1:week3,     
+             names_to = "week, values_to = "count)
+```
 
 ![](img/reshape.jpg)
 
