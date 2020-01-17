@@ -13,7 +13,7 @@ This workshop covers the following topics with examples and exercises using `tid
 - Reshaping data frames
 
 Download workshop files:   
-<a href = "https://raw.githubusercontent.com/clayford/DWR/master/DWR.R" download = "DWR.R">R Script</a>
+<a href = "https://raw.githubusercontent.com/clayford/DWR/master/DWR.R" download target="_blank">R Script</a>
 
 
 
