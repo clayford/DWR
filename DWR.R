@@ -100,9 +100,6 @@ map_dbl(lst3, mean)
 # lapply and sapply the summary and quantile functions to lst3. How does sapply
 # simplify the result? Try the same with map() and map_df().
 
-sapply(lst3, max)
-sapply(lst3, summary)
-map_df(lst3, quantile)
 
 
 
@@ -270,9 +267,6 @@ ggplot(stocks_df, aes(x = Day, y = Change)) +
 # argument?
 setwd("../doe")
 
-grads <- list.files()
-grads_ls <- lapply(grads, read_csv)
-grads_df <- bind_rows(grads_ls)
 
 
 # Merging/Joining ---------------------------------------------------------
@@ -502,9 +496,6 @@ names(grads_df_2016_2017)[c(3,5)]
 names(va_schools)[c(1,3)]
 
 
-
-va2016_2017 <- left_join(grads_df_2016_2017, va_schools, by = c("DIV_NUM" = "DivNo", 
-                                                                "SCH_NUM" = "SchoolNo"))
 
 
 # Why do this merge? So we could find, say, schools with the highest rate of
