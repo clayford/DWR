@@ -12,8 +12,7 @@ This workshop covers the following topics with examples and exercises using `tid
 - Merging or Joining data frames
 - Reshaping data frames
 
-Download workshop files:   
-<a href = "https://raw.githubusercontent.com/clayford/DWR/master/DWR.R" download target="_blank">R Script</a>
+<a href = "https://github.com/clayford/DWR/raw/master/DWR.zip">Download workshop files</a>
 
 
 
